@@ -1,5 +1,5 @@
 import streamlit as st
-from ai_youtube import run_qa   # 👈 import backend logic
+from ai_youtube import run_qa   
 
 
 st.title("🎬 AI YouTube Video Question Answering System")
