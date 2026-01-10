@@ -9,33 +9,24 @@ from langchain_community.vectorstores import FAISS
 from dotenv import load_dotenv
 import os
 
-# ----------------------------
-# Setup environment
-# ----------------------------
+
 load_dotenv()
 OPENAI_TOKEN = os.getenv("GITHUB_TOKEN")
 
 os.environ["OPENAI_API_KEY"] = OPENAI_TOKEN
 os.environ["OPENAI_API_BASE"] = "https://models.github.ai/inference"
 
-# ----------------------------
-# Initialize models
-# ----------------------------
 llm = ChatOpenAI(model="openai/gpt-4.1", temperature=1.0)
 translator_llm = ChatOpenAI(model="gpt-4.1", temperature=0)
 
-# ----------------------------
-# Translate helper
-# ----------------------------
+
 def translate_once(docs):
     text_block = "\n\n".join([doc.page_content for doc in docs])
     prompt = f"Translate the following text into English:\n\n{text_block}"
     translation = translator_llm.invoke(prompt).content
     return translation
 
-# ----------------------------
-# Prompt
-# ----------------------------
+
 template = """You are a helpful assistant.
 Answer ONLY from the provided transcript context.
 Always respond in English, even if the transcript was originally in another language.
@@ -48,11 +39,9 @@ Question: {question}
 """
 prompt = PromptTemplate(template=template, input_variables=["context", "question"])
 
-# ----------------------------
-# Main function used by GUI
-# ----------------------------
+
 def run_qa(video_id: str, question: str):
-    # Fetch transcript
+
     try:
         transcript_list = YouTubeTranscriptApi().fetch(
             video_id, languages=["en", "hi", "fr", "ur"]
@@ -68,14 +57,14 @@ def run_qa(video_id: str, question: str):
     if not raw_transcript:
         return "❌ Empty transcript."
 
-    # Split transcript
+    
     splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=50)
     chunks = splitter.create_documents([raw_transcript])
 
-    # Embeddings
+  
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
-    # Build FAISS in batches
+  
     batch_size = 10
     vector_store = None
     for i in range(0, len(chunks), batch_size):
@@ -91,7 +80,6 @@ def run_qa(video_id: str, question: str):
         search_kwargs={"k": 5, "fetch_k": 15}
     )
 
-    # Translate retrieved chunks
     def format_fun(retrieved_docs):
         return translate_once(retrieved_docs)
 
@@ -104,6 +92,5 @@ def run_qa(video_id: str, question: str):
 
     main_chain = parallel_chain | prompt | llm | parser
 
-    # Run QA
     result = main_chain.invoke(question)
     return result
