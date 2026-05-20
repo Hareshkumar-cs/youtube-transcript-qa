@@ -1,0 +1,6 @@
+hello  
+
+
+# A variable with a typo (missing the 'a')
+messge = "Hello"
+print(mesage) 
