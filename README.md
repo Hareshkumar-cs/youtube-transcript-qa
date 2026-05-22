@@ -23,7 +23,7 @@ An AI-powered web application that allows users to ask questions about any YouTu
 - FAISS
 - OpenAI / GitHub Models API
 - YouTube Transcript API
-#ashar ahmed SANDESH KUMAR
+
 
 
 
